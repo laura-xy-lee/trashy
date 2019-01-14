@@ -1,4 +1,4 @@
 .idea/
 venv/
 _data
-
+.DS_Store
