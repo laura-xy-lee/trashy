@@ -298,21 +298,6 @@ var map = new mapboxgl.Map({
   zoom: 11.3
 });
 
-// load the geojson data as a variable
-var stores = (function() {
-  var json = null;
-  $.ajax({
-    async: false,
-    global: false,
-    url: "/static/RECYCLINGBINS.geojson",
-    dataType: "json",
-    success: function(data) {
-      json = data;
-    }
-  });
-  return json;
-})();
-
 // This will let you use the .remove() function later on
 if (!("remove" in Element.prototype)) {
   Element.prototype.remove = function() {
@@ -322,24 +307,34 @@ if (!("remove" in Element.prototype)) {
   };
 }
 
+var stores;
+
 map.on("load", function(e) {
-  // Add the data to your map as a layer
-  map.addLayer({
-    id: "locations",
-    type: "symbol",
-    // Add a GeoJSON source containing place coordinates and information.
-    source: {
-      type: "geojson",
-      data: stores
-    },
-    layout: {
-      "icon-image": "marker-15",
-      "icon-allow-overlap": true
+  $.ajax({
+    async: true,
+    global: false,
+    url: "/static/RECYCLINGBINS.geojson",
+    dataType: "json",
+    success: function(data) {
+      stores = data;
+        // Add the data to your map as a layer
+      map.addLayer({
+        id: "locations",
+        type: "symbol",
+        // Add a GeoJSON source containing place coordinates and information.
+        source: {
+          type: "geojson",
+          data: stores
+        },
+        layout: {
+          "icon-image": "marker-15",
+          "icon-allow-overlap": true
+        }
+      });
+      // creates the list of stores
+      buildLocationList(stores);
     }
   });
-
-  // creates the list of stores
-  buildLocationList(stores);
 });
 
 // Add an event listener for the links in the sidebar listing
