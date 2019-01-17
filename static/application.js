@@ -1,4 +1,3 @@
-
 mapboxgl.accessToken =
   "pk.eyJ1IjoibGF1cmFsZWUiLCJhIjoiY2pxaHQzYjlsMmowMzQzcXAyYmZ6MnhjNiJ9.T-_5OQrzP6XMd15BZ59Qyg";
 
@@ -59,6 +58,23 @@ function buildLocationList(data) {
     link.dataPosition = i;
     link.innerHTML = getAddress(prop.description);
 
+
+    // Add an event listener for the links in the sidebar listing
+    link.addEventListener("click", function(e) {
+      // Update the currentFeature to the store associated with the clicked link
+      var clickedListing = data.features[this.dataPosition];
+      // 1. Fly to the point associated with the clicked link
+      flyToStore(clickedListing);
+      // 2. Close all other popups and display popup for clicked store
+      createPopUp(clickedListing);
+      // 3. Highlight listing in sidebar (and remove highlight for all other listings)
+      var activeItem = document.getElementsByClassName("active");
+      if (activeItem[0]) {
+        activeItem[0].classList.remove("active");
+      }
+      this.parentNode.classList.add("active");
+    });
+    
     // Create a new div with the class 'details' for each store
     // and fill it with the city and phone number
     var details = listing.appendChild(document.createElement("div"));
@@ -73,7 +89,7 @@ function buildLocationList(data) {
 function flyToStore(currentFeature) {
   map.flyTo({
     center: currentFeature.geometry.coordinates,
-    zoom: 15
+    zoom: 17
   });
 }
 
@@ -83,10 +99,10 @@ function createPopUp(currentFeature) {
   // Check if there is already a popup on the map and if so, remove it
   if (popUps[0]) popUps[0].remove();
 
-  var popup = new mapboxgl.Popup({ closeOnClick: false })
+  var popup = new mapboxgl.Popup({ closeOnClick: true })
     .setLngLat(currentFeature.geometry.coordinates)
     .setHTML(
-      "<h3>Recycle Here</h3>" +
+      "<h3>Recycling Bin at</h3>" +
         "<h4>" +
         getAddress(currentFeature.properties.description) +
         "</h4>"
@@ -143,22 +159,6 @@ map.on("load", function(e) {
       buildLocationList(stores);
     }
   });
-});
-
-// Add an event listener for the links in the sidebar listing
-link.addEventListener("click", function(e) {
-  // Update the currentFeature to the store associated with the clicked link
-  var clickedListing = data.features[this.dataPosition];
-  // 1. Fly to the point associated with the clicked link
-  flyToStore(clickedListing);
-  // 2. Close all other popups and display popup for clicked store
-  createPopUp(clickedListing);
-  // 3. Highlight listing in sidebar (and remove highlight for all other listings)
-  var activeItem = document.getElementsByClassName("active");
-  if (activeItem[0]) {
-    activeItem[0].classList.remove("active");
-  }
-  this.parentNode.classList.add("active");
 });
 
 // Add an event listener for when a user clicks on the map

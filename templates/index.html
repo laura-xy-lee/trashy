@@ -5,6 +5,7 @@
     <title>Trashy demo</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700' rel='stylesheet'>
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
@@ -129,6 +130,11 @@
       }
 
       /* Marker tweaks */
+      .mapboxgl-popup {
+        padding-top: 232px;
+        padding-left: 45px;
+      }
+
       .mapboxgl-popup-close-button {
         display: none;
       }
@@ -188,7 +194,7 @@
   <div id='listings' class='listings'></div>
 </div>
 
-<div id='map' class='map pad2'>Map</div>
+<div id='map' class='map pad2'></div>
 
 <script src="/static/application.js"></script>
 
