@@ -40,9 +40,9 @@ function buildLocationList(data) {
   // Iterate through the list of stores
   for (i = 0; i < data.features.length; i++) {
     var currentFeature = data.features[i];
-    // Shorten data.feature.properties to just `prop` so we're not
-    // writing this long form over and over again.
+
     var prop = currentFeature.properties;
+
     // Select the listing container in the HTML and append a div
     // with the class 'item' for each store
     var listings = document.getElementById("listings");
@@ -58,7 +58,17 @@ function buildLocationList(data) {
     link.dataPosition = i;
     link.innerHTML = getAddress(prop.description);
 
+    // Create a new div with the class 'details' for each store
+    // and fill it with the city and phone number
+    var details = listing.appendChild(document.createElement("div"));
+    details.innerHTML = getDescription(prop.description);
 
+    // Add distance information if present
+    if (prop.distance) {
+      var roundedDistance = Math.round(prop.distance * 100) / 100;
+      details.innerHTML += '<p><strong>' + roundedDistance + ' km away</strong></p>';
+    }
+    
     // Add an event listener for the links in the sidebar listing
     link.addEventListener("click", function(e) {
       // Update the currentFeature to the store associated with the clicked link
@@ -75,13 +85,6 @@ function buildLocationList(data) {
       this.parentNode.classList.add("active");
     });
     
-    // Create a new div with the class 'details' for each store
-    // and fill it with the city and phone number
-    var details = listing.appendChild(document.createElement("div"));
-    details.innerHTML = getDescription(prop.description);
-    // if (prop.phone) {
-    //   details.innerHTML += " &middot; " + prop.phoneFormatted;
-    // }
   }
 }
 
@@ -110,6 +113,39 @@ function createPopUp(currentFeature) {
     .addTo(map);
 }
 
+function sortLonLat(storeIdentifier, searchResult) {
+  // Get lat lon of nearest store and location selected
+  var lats = [stores.features[storeIdentifier].geometry.coordinates[1], searchResult.coordinates[1]];
+  var lons = [stores.features[storeIdentifier].geometry.coordinates[0], searchResult.coordinates[0]];
+
+  // Sort lat lon to create bounding box
+  var sortedLons = lons.sort(function(a, b) {
+    if (a > b) {
+      return 1;
+    }
+    if (a.distance < b.distance) {
+      return -1;
+    }
+    return 0;
+  });
+  var sortedLats = lats.sort(function(a, b) {
+    if (a > b) {
+      return 1;
+    }
+    if (a.distance < b.distance) {
+      return -1;
+    }
+    return 0;
+  });
+
+  map.fitBounds([
+    [sortedLons[0], sortedLats[0]],
+    [sortedLons[1], sortedLats[1]]
+  ], {
+    padding: 100
+  });
+}
+
 // create the map object
 var map = new mapboxgl.Map({
   // container id specified in the HTML
@@ -133,7 +169,13 @@ if (!("remove" in Element.prototype)) {
 
 var stores;
 
+var geocoder = new MapboxGeocoder({
+  accessToken: mapboxgl.accessToken,
+  bbox: [103.6182, 1.1158, 104.4085, 1.4706]
+});
+
 map.on("load", function(e) {
+  // Add recycling bin locations layer
   $.ajax({
     async: true,
     global: false,
@@ -158,6 +200,72 @@ map.on("load", function(e) {
       // creates the list of stores
       buildLocationList(stores);
     }
+  });
+
+  // Add location search layer
+  map.addControl(geocoder, 'top-left');
+
+  // Add marker layer for location search
+  map.addSource('single-point', {
+    type: 'geojson',
+    data: {
+      type: 'FeatureCollection',
+      features: [] // Notice that initially there are no features
+    }
+  });
+
+  map.addLayer({
+    id: 'point',
+    source: 'single-point',
+    type: 'circle',
+    paint: {
+      'circle-radius': 10,
+      'circle-color': '#007cbf',
+      'circle-stroke-width': 3,
+      'circle-stroke-color': '#fff'
+    }
+  });
+
+  // Fire event when user selects a search result
+  geocoder.on('result', function(ev) {
+
+    // Update geometry of single-point
+    var searchResult = ev.result.geometry;
+    map.getSource('single-point').setData(searchResult);
+
+    // Calculate distance between all stores and this point
+    stores.features.forEach(function(store) {
+      Object.defineProperty(store.properties, 'distance', {
+        value: turf.distance(searchResult, store.geometry),
+        writable: true,
+        enumerable: true,
+        configurable: true
+      });
+    });
+
+    // Sort all stores by distance from point
+    stores.features.sort(function(a, b) {
+      if (a.properties.distance > b.properties.distance) {
+        return 1;
+      }
+      if (a.properties.distance < b.properties.distance) {
+        return -1;
+      }
+      // a must be equal to b
+      return 0;
+    });
+
+    // Remove previous listing, create new list ordered by distance
+    var listings = document.getElementById('listings');
+    while (listings.firstChild) {
+      listings.removeChild(listings.firstChild);
+    }
+
+    buildLocationList(stores);
+
+    // Create pop up for nearest store
+    sortLonLat(0, searchResult);
+    createPopUp(stores.features[0]);
   });
 });
 
