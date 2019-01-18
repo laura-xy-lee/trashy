@@ -146,6 +146,36 @@ function sortLonLat(storeIdentifier, searchResult) {
   });
 }
 
+function orderListingByDistance(searchResult) {
+  // Calculate distance between all stores and this point
+  stores.features.forEach(function(store) {
+    Object.defineProperty(store.properties, 'distance', {
+      value: turf.distance(searchResult, store.geometry),
+      writable: true,
+      enumerable: true,
+      configurable: true
+    });
+  });
+
+  // Sort all stores by distance from point
+  stores.features.sort(function(a, b) {
+    if (a.properties.distance > b.properties.distance) {
+      return 1;
+    }
+    if (a.properties.distance < b.properties.distance) {
+      return -1;
+    }
+    // a must be equal to b
+    return 0;
+  });
+
+  buildLocationList(stores);
+  
+  // Create pop up for nearest store
+  sortLonLat(0, searchResult);
+  createPopUp(stores.features[0]);
+}
+
 // create the map object
 var map = new mapboxgl.Map({
   // container id specified in the HTML
@@ -199,73 +229,49 @@ map.on("load", function(e) {
       });
       // creates the list of stores
       buildLocationList(stores);
-    }
-  });
 
-  // Add location search layer
-  map.addControl(geocoder, 'top-left');
+      // Add location search layer
+      map.addControl(geocoder, 'top-left');
 
-  // Add marker layer for location search
-  map.addSource('single-point', {
-    type: 'geojson',
-    data: {
-      type: 'FeatureCollection',
-      features: [] // Notice that initially there are no features
-    }
-  });
-
-  map.addLayer({
-    id: 'point',
-    source: 'single-point',
-    type: 'circle',
-    paint: {
-      'circle-radius': 10,
-      'circle-color': '#007cbf',
-      'circle-stroke-width': 3,
-      'circle-stroke-color': '#fff'
-    }
-  });
-
-  // Fire event when user selects a search result
-  geocoder.on('result', function(ev) {
-
-    // Update geometry of single-point
-    var searchResult = ev.result.geometry;
-    map.getSource('single-point').setData(searchResult);
-
-    // Calculate distance between all stores and this point
-    stores.features.forEach(function(store) {
-      Object.defineProperty(store.properties, 'distance', {
-        value: turf.distance(searchResult, store.geometry),
-        writable: true,
-        enumerable: true,
-        configurable: true
+      // Add marker layer for location search
+      map.addSource('single-point', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: [] // Notice that initially there are no features
+        }
       });
-    });
 
-    // Sort all stores by distance from point
-    stores.features.sort(function(a, b) {
-      if (a.properties.distance > b.properties.distance) {
-        return 1;
-      }
-      if (a.properties.distance < b.properties.distance) {
-        return -1;
-      }
-      // a must be equal to b
-      return 0;
-    });
+      map.addLayer({
+        id: 'point',
+        source: 'single-point',
+        type: 'circle',
+        paint: {
+          'circle-radius': 10,
+          'circle-color': '#007cbf',
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#fff'
+        }
+      });
 
-    // Remove previous listing, create new list ordered by distance
-    var listings = document.getElementById('listings');
-    while (listings.firstChild) {
-      listings.removeChild(listings.firstChild);
+      // Fire event when user selects a search result
+      geocoder.on('result', (ev) => {
+
+        // Update geometry of single-point
+        var searchResult = ev.result.geometry;
+        map.getSource('single-point').setData(searchResult);
+
+        // Remove previous listing, create new list ordered by distance
+        var listings = document.getElementById('listings');
+        while (listings.firstChild) {
+          listings.removeChild(listings.firstChild);
+        }
+
+        setTimeout(function() {
+          orderListingByDistance(searchResult)
+        }, 1000)
+      });
     }
-
-    buildLocationList(stores);
-
-    // Create pop up for nearest store
-    sortLonLat(0, searchResult);
-    createPopUp(stores.features[0]);
   });
 });
 
