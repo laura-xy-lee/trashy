@@ -1,40 +1,6 @@
 mapboxgl.accessToken =
   "pk.eyJ1IjoibGF1cmFsZWUiLCJhIjoiY2pxaHQzYjlsMmowMzQzcXAyYmZ6MnhjNiJ9.T-_5OQrzP6XMd15BZ59Qyg";
 
-function extractContent(value) {
-  var div = document.createElement("div");
-  div.innerHTML = value;
-  var text = div.textContent;
-  return text;
-}
-
-function getAddress(str) {
-  rawStr = extractContent(str);
-  var block = rawStr
-    .split("ADDRESSBLOCKHOUSENUMBER")[1]
-    .split("ADDRESSBUILDINGNAME")[0];
-  var buildingName = rawStr
-    .split("ADDRESSBUILDINGNAME")[1]
-    .split("ADDRESSFLOORNUMBER")[0];
-  // var floor = rawStr
-  //   .split("ADDRESSFLOORNUMBER")[1]
-  //   .split("ADDRESSPOSTALCODE")[0];
-  // var postalCode = rawStr
-  //   .split("ADDRESSPOSTALCODE")[1]
-  //   .split("ADDRESSSTREETNAME")[0];
-  var streetName = rawStr
-    .split("ADDRESSSTREETNAME")[1]
-    .split("ADDRESS TYPE")[0];
-  // var fullAddress = [block, buildingName, floor, postalCode, streetName];
-  var fullAddress = [block, buildingName, streetName];
-  return fullAddress.join(" ");
-}
-
-function getDescription(str) {
-  var description = str.split("<td>NAME</td>")[1].split("<td>PHOTOURL</td>")[0];
-  return extractContent(description);
-}
-
 // iterate through locations and add each one to the sidebar listing
 function buildLocationList(data) {
   // Iterate through the list of stores
@@ -56,12 +22,13 @@ function buildLocationList(data) {
     link.href = "#";
     link.className = "title";
     link.dataPosition = i;
-    link.innerHTML = getAddress(prop.description);
+
+    link.innerHTML = prop.fullName;
 
     // Create a new div with the class 'details' for each store
     // and fill it with the city and phone number
     var details = listing.appendChild(document.createElement("div"));
-    details.innerHTML = getDescription(prop.description);
+    details.innerHTML = prop.information;
 
     // Add distance information if present
     if (prop.distance) {
@@ -107,7 +74,7 @@ function createPopUp(currentFeature) {
     .setHTML(
       "<h3>Recycling Bin at</h3>" +
         "<h4>" +
-        getAddress(currentFeature.properties.description) +
+        currentFeature.properties.fullName +
         "</h4>"
     )
     .addTo(map);
@@ -209,7 +176,7 @@ map.on("load", function(e) {
   $.ajax({
     async: true,
     global: false,
-    url: "/static/RECYCLINGBINS.geojson",
+    url: "/static/RECYCLINGBINS_cleaned.geojson",
     dataType: "json",
     success: function(data) {
       stores = data;
@@ -269,7 +236,7 @@ map.on("load", function(e) {
 
         setTimeout(function() {
           orderListingByDistance(searchResult)
-        }, 1000)
+        }, 2000)
       });
     }
   });
