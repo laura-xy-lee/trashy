@@ -69,21 +69,21 @@ function buildLocationList(data) {
       details.innerHTML += '<p><strong>' + roundedDistance + ' km away</strong></p>';
     }
     
-    // // Add an event listener for the links in the sidebar listing
-    // link.addEventListener("click", function(e) {
-    //   // Update the currentFeature to the store associated with the clicked link
-    //   var clickedListing = data.features[this.dataPosition];
-    //   // 1. Fly to the point associated with the clicked link
-    //   flyToStore(clickedListing);
-    //   // 2. Close all other popups and display popup for clicked store
-    //   createPopUp(clickedListing);
-    //   // 3. Highlight listing in sidebar (and remove highlight for all other listings)
-    //   var activeItem = document.getElementsByClassName("active");
-    //   if (activeItem[0]) {
-    //     activeItem[0].classList.remove("active");
-    //   }
-    //   this.parentNode.classList.add("active");
-    // });
+    // Add an event listener for the links in the sidebar listing
+    link.addEventListener("click", function(e) {
+      // Update the currentFeature to the store associated with the clicked link
+      var clickedListing = data.features[this.dataPosition];
+      // 1. Fly to the point associated with the clicked link
+      flyToStore(clickedListing);
+      // 2. Close all other popups and display popup for clicked store
+      createPopUp(clickedListing);
+      // 3. Highlight listing in sidebar (and remove highlight for all other listings)
+      var activeItem = document.getElementsByClassName("active");
+      if (activeItem[0]) {
+        activeItem[0].classList.remove("active");
+      }
+      this.parentNode.classList.add("active");
+    });
     
   }
 }
@@ -275,31 +275,31 @@ map.on("load", function(e) {
   });
 });
 
-// // Add an event listener for when a user clicks on the map
-// map.on("click", function(e) {
-//   // Query all the rendered points in the view
-//   var features = map.queryRenderedFeatures(e.point, { layers: ["locations"] });
-//   if (features.length) {
-//     var clickedPoint = features[0];
-//     // 1. Fly to the point
-//     flyToStore(clickedPoint);
-//     // 2. Close all other popups and display popup for clicked store
-//     createPopUp(clickedPoint);
-//     // 3. Highlight listing in sidebar (and remove highlight for all other listings)
-//     var activeItem = document.getElementsByClassName("active");
-//     if (activeItem[0]) {
-//       activeItem[0].classList.remove("active");
-//     }
-//     // Find the index of the store.features that corresponds to the clickedPoint that fired the event listener
-//     var selectedFeature = clickedPoint.properties.address;
+// Add an event listener for when a user clicks on the map
+map.on("click", function(e) {
+  // Query all the rendered points in the view
+  var features = map.queryRenderedFeatures(e.point, { layers: ["locations"] });
+  if (features.length) {
+    var clickedPoint = features[0];
+    // 1. Fly to the point
+    flyToStore(clickedPoint);
+    // 2. Close all other popups and display popup for clicked store
+    createPopUp(clickedPoint);
+    // 3. Highlight listing in sidebar (and remove highlight for all other listings)
+    var activeItem = document.getElementsByClassName("active");
+    if (activeItem[0]) {
+      activeItem[0].classList.remove("active");
+    }
+    // Find the index of the store.features that corresponds to the clickedPoint that fired the event listener
+    var selectedFeature = clickedPoint.properties.address;
 
-//     for (var i = 0; i < stores.features.length; i++) {
-//       if (stores.features[i].properties.address === selectedFeature) {
-//         selectedFeatureIndex = i;
-//       }
-//     }
-//     // Select the correct list item using the found index and add the active class
-//     var listing = document.getElementById("listing-" + selectedFeatureIndex);
-//     listing.classList.add("active");
-//   }
-// });
+    for (var i = 0; i < stores.features.length; i++) {
+      if (stores.features[i].properties.address === selectedFeature) {
+        selectedFeatureIndex = i;
+      }
+    }
+    // Select the correct list item using the found index and add the active class
+    var listing = document.getElementById("listing-" + selectedFeatureIndex);
+    listing.classList.add("active");
+  }
+});
