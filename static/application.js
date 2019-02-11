@@ -1,4 +1,5 @@
-mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+mapboxgl.accessToken =
+  "pk.eyJ1IjoibGF1cmFsZWUiLCJhIjoiY2pxaHQzYjlsMmowMzQzcXAyYmZ6MnhjNiJ9.T-_5OQrzP6XMd15BZ59Qyg";
 
 // Iterate through bin locations
 // and add each one to the sidebar listing
