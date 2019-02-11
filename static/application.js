@@ -1,31 +1,30 @@
 mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 
-// iterate through locations and add each one to the sidebar listing
+// Iterate through bin locations
+// and add each one to the sidebar listing
 function buildLocationList(data) {
-  // Iterate through the list of stores
+  // Iterate through the list of bin locations
   for (i = 0; i < data.features.length; i++) {
     var currentFeature = data.features[i];
-
     var prop = currentFeature.properties;
 
-    // Select the listing container in the HTML and append a div
-    // with the class 'item' for each store
+    // Select the listing container in the HTML
+    // and append a div with the class 'item' for each bin
     var listings = document.getElementById("listings");
     var listing = listings.appendChild(document.createElement("div"));
     listing.className = "item";
     listing.id = "listing-" + i;
 
-    // Create a new link with the class 'title' for each store
-    // and fill it with the store address
+    // Create a new link with the class 'title' for each bin
+    // and fill it with the bin address
     var link = listing.appendChild(document.createElement("a"));
     link.href = "#";
     link.className = "title";
     link.dataPosition = i;
-
     link.innerHTML = prop.fullName;
 
-    // Create a new div with the class 'details' for each store
-    // and fill it with the city and phone number
+    // Create a new div with the class 'details' for each bin
+    // and fill it with bin information
     var details = listing.appendChild(document.createElement("div"));
     details.innerHTML = prop.information;
 
@@ -40,11 +39,15 @@ function buildLocationList(data) {
     link.addEventListener("click", function(e) {
       // Update the currentFeature to the store associated with the clicked link
       var clickedListing = data.features[this.dataPosition];
+
       // 1. Fly to the point associated with the clicked link
       flyToStore(clickedListing);
+
       // 2. Close all other popups and display popup for clicked store
       createPopUp(clickedListing);
-      // 3. Highlight listing in sidebar (and remove highlight for all other listings)
+
+      // 3. Highlight listing in sidebar
+      //    and remove highlight for all other listings
       var activeItem = document.getElementsByClassName("active");
       if (activeItem[0]) {
         activeItem[0].classList.remove("active");
@@ -54,7 +57,7 @@ function buildLocationList(data) {
   }
 }
 
-// flies map to the correct store
+// Fly map to the correct store
 function flyToStore(currentFeature) {
   map.flyTo({
     center: currentFeature.geometry.coordinates,
@@ -62,9 +65,10 @@ function flyToStore(currentFeature) {
   });
 }
 
-// displays pop up at the correct store
+// Displays pop up at the correct store
 function createPopUp(currentFeature) {
   var popUps = document.getElementsByClassName("mapboxgl-popup");
+
   // Check if there is already a popup on the map and if so, remove it
   if (popUps[0]) popUps[0].remove();
 
@@ -141,7 +145,10 @@ function orderListingByDistance(searchResult) {
     return 0;
   });
 
-  buildLocationList(stores);
+  // Return only 20 nearest bins
+  stores_subset = Object.assign({}, stores);
+  stores_subset.features = stores_subset.features.slice(0, 20);
+  buildLocationList(stores_subset);
 
   // Create pop up for nearest store
   sortLonLat(0, searchResult);
@@ -238,9 +245,7 @@ map.on("load", function(e) {
           listings.removeChild(listings.firstChild);
         }
 
-        setTimeout(function() {
-          orderListingByDistance(searchResult);
-        }, 2000);
+        orderListingByDistance(searchResult);
       });
     }
   });
