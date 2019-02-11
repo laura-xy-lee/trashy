@@ -1,5 +1,4 @@
-mapboxgl.accessToken =
-  "pk.eyJ1IjoibGF1cmFsZWUiLCJhIjoiY2pxaHQzYjlsMmowMzQzcXAyYmZ6MnhjNiJ9.T-_5OQrzP6XMd15BZ59Qyg";
+mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 
 // iterate through locations and add each one to the sidebar listing
 function buildLocationList(data) {
@@ -33,9 +32,10 @@ function buildLocationList(data) {
     // Add distance information if present
     if (prop.distance) {
       var roundedDistance = Math.round(prop.distance * 100) / 100;
-      details.innerHTML += '<p><strong>' + roundedDistance + ' km away</strong></p>';
+      details.innerHTML +=
+        "<p><strong>" + roundedDistance + " km away</strong></p>";
     }
-    
+
     // Add an event listener for the links in the sidebar listing
     link.addEventListener("click", function(e) {
       // Update the currentFeature to the store associated with the clicked link
@@ -51,7 +51,6 @@ function buildLocationList(data) {
       }
       this.parentNode.classList.add("active");
     });
-    
   }
 }
 
@@ -82,8 +81,14 @@ function createPopUp(currentFeature) {
 
 function sortLonLat(storeIdentifier, searchResult) {
   // Get lat lon of nearest store and location selected
-  var lats = [stores.features[storeIdentifier].geometry.coordinates[1], searchResult.coordinates[1]];
-  var lons = [stores.features[storeIdentifier].geometry.coordinates[0], searchResult.coordinates[0]];
+  var lats = [
+    stores.features[storeIdentifier].geometry.coordinates[1],
+    searchResult.coordinates[1]
+  ];
+  var lons = [
+    stores.features[storeIdentifier].geometry.coordinates[0],
+    searchResult.coordinates[0]
+  ];
 
   // Sort lat lon to create bounding box
   var sortedLons = lons.sort(function(a, b) {
@@ -105,18 +110,18 @@ function sortLonLat(storeIdentifier, searchResult) {
     return 0;
   });
 
-  map.fitBounds([
-    [sortedLons[0], sortedLats[0]],
-    [sortedLons[1], sortedLats[1]]
-  ], {
-    padding: 100
-  });
+  map.fitBounds(
+    [[sortedLons[0], sortedLats[0]], [sortedLons[1], sortedLats[1]]],
+    {
+      padding: 100
+    }
+  );
 }
 
 function orderListingByDistance(searchResult) {
   // Calculate distance between all stores and this point
   stores.features.forEach(function(store) {
-    Object.defineProperty(store.properties, 'distance', {
+    Object.defineProperty(store.properties, "distance", {
       value: turf.distance(searchResult, store.geometry),
       writable: true,
       enumerable: true,
@@ -137,7 +142,7 @@ function orderListingByDistance(searchResult) {
   });
 
   buildLocationList(stores);
-  
+
   // Create pop up for nearest store
   sortLonLat(0, searchResult);
   createPopUp(stores.features[0]);
@@ -180,7 +185,7 @@ map.on("load", function(e) {
     dataType: "json",
     success: function(data) {
       stores = data;
-        // Add the data to your map as a layer
+      // Add the data to your map as a layer
       map.addLayer({
         id: "locations",
         type: "symbol",
@@ -198,45 +203,44 @@ map.on("load", function(e) {
       buildLocationList(stores);
 
       // Add location search layer
-      map.addControl(geocoder, 'top-left');
+      map.addControl(geocoder, "top-left");
 
       // Add marker layer for location search
-      map.addSource('single-point', {
-        type: 'geojson',
+      map.addSource("single-point", {
+        type: "geojson",
         data: {
-          type: 'FeatureCollection',
+          type: "FeatureCollection",
           features: [] // Notice that initially there are no features
         }
       });
 
       map.addLayer({
-        id: 'point',
-        source: 'single-point',
-        type: 'circle',
+        id: "point",
+        source: "single-point",
+        type: "circle",
         paint: {
-          'circle-radius': 10,
-          'circle-color': '#007cbf',
-          'circle-stroke-width': 3,
-          'circle-stroke-color': '#fff'
+          "circle-radius": 10,
+          "circle-color": "#007cbf",
+          "circle-stroke-width": 3,
+          "circle-stroke-color": "#fff"
         }
       });
 
       // Fire event when user selects a search result
-      geocoder.on('result', (ev) => {
-
+      geocoder.on("result", ev => {
         // Update geometry of single-point
         var searchResult = ev.result.geometry;
-        map.getSource('single-point').setData(searchResult);
+        map.getSource("single-point").setData(searchResult);
 
         // Remove previous listing, create new list ordered by distance
-        var listings = document.getElementById('listings');
+        var listings = document.getElementById("listings");
         while (listings.firstChild) {
           listings.removeChild(listings.firstChild);
         }
 
         setTimeout(function() {
-          orderListingByDistance(searchResult)
-        }, 2000)
+          orderListingByDistance(searchResult);
+        }, 2000);
       });
     }
   });

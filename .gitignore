@@ -3,3 +3,4 @@ venv/
 _data
 .DS_Store
 data/
+static/env.js
